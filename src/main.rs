@@ -6,6 +6,7 @@ mod state;
 mod web;
 
 
+use slog::{Drain, slog_o};
 use anyhow::Context;
 use futures::future;
 use structopt::StructOpt;
@@ -20,8 +21,16 @@ use crate::{
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let plain = slog_term::PlainSyncDecorator::new(std::io::stdout());
+    let log = slog::Logger::root(
+        slog_term::FullFormat::new(plain)
+        .build().fuse(), slog_o!()
+    );
+
+    let _guard = slog_scope::set_global_logger(log);
+
     let cmd = Opt::from_args();
-    let mut cfg = Config::new(cmd.config.as_deref())?;
+    let cfg = Config::new(cmd.config.as_deref())?;
     let cancel_token = CancellationToken::new();
 
     let app_state = init_app_state(cfg).await?;

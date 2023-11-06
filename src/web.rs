@@ -1,3 +1,4 @@
+use axum::extract::Path;
 use axum::{Server,
     routing::post,
     Router,
@@ -5,6 +6,12 @@ use axum::{Server,
 };
 
 use crate::{state::AppState};
+
+async fn get_user(
+    Path(user_id): Path<String>,
+) -> std::string::String {
+    format!("get {user_id}")
+}
 
 pub async fn run(app_state: AppState) -> anyhow::Result<()> {
     let addr = app_state.cfg().http;
@@ -24,7 +31,15 @@ fn make_router(app_state: AppState) -> Router {
 fn check_router(app_state: AppState) -> Router {
     Router::new()
         .route(
-            "/v1/check",
-            post(|| async { "Hello, World!" })
+            "/login",
+            post(|| async { "login" })
+        )
+        .route(
+            "/user/register",
+            post(|| async { "register" })
+        )
+        .route(
+            "/user/get/:id",
+            post(get_user)
         )
 }
