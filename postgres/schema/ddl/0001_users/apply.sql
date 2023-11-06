@@ -16,7 +16,7 @@ CREATE TABLE social_net.users
     gender          social_net.gender,
     city            VARCHAR(100),
     biography       VARCHAR(999),
-    password_hash   VARCHAR(999)
+    password_hash   VARCHAR(999) NOT NULL
 );
 
 COMMENT ON TABLE  social_net.users                  IS 'Users';

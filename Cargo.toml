@@ -1,0 +1,21 @@
+[package]
+name = "otus-hla-hw"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.56"
+async-trait = "0.1.53"
+axum = "0.6.20"
+
+config = { version = "0.12", default-features = false, features = ["yaml"] }
+futures = { version = "0.3" }
+serde = { version = "1.0", features = ["derive"] }
+sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "postgres", "macros", "json", "chrono", "offline", "decimal"] }
+slog = "2.7"
+slog-scope = "4.4.0"
+structopt = "0.3"
+tokio = { version = "1.17.0", features = ["full"] }
+tokio-util = "0.7.3"
