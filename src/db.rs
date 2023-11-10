@@ -1,4 +1,6 @@
 pub type Pool = sqlx::PgPool;
+pub type Connection = sqlx::PgConnection;
+
 #[derive(Debug, Clone)]
 pub struct DbClient {
     pool: Pool,
@@ -20,14 +22,14 @@ use std::{
     time::Duration,
 };
 
-use  slog::{self, Drain, Level, Logger, Record, RecordStatic};
-use slog_scope::with_logger;
+use  slog::{self, Level};
+
 pub use sqlx::{self, PgPool};
 
 use serde::Deserialize;
 use sqlx::{
-    pool::{PoolConnection, PoolConnectionMetadata, PoolOptions},
-    postgres::PgConnectOptions, Connection, Database, Postgres,
+    pool::{PoolConnection, PoolOptions},
+    postgres::PgConnectOptions, Postgres,
 };
 
 pub type PgConnection = PoolConnection<Postgres>;
@@ -49,30 +51,6 @@ fn default_statement_log_slow_duration() -> Duration {
 
 fn default_statement_log_slow_level() -> Level {
     Level::Warning
-}
-
-fn connections_management_log_action(
-    record_static: &RecordStatic,
-    conn: &mut <Postgres as Database>::Connection,
-    meta: PoolConnectionMetadata,
-) {
-    with_logger(|logger| {
-        // Проверяем уровень логирования до того, как совершать дополнительные операции вроде построения BorrowedKV.
-        if logger.is_enabled(record_static.level) {
-            Logger::log(
-                logger,
-                &Record::new(
-                    record_static,
-                    &format_args!("connections management: {}", record_static.tag), // Тэг не выводится в лог иным образом, несмотря на указание в record_static.
-                    slog::b!(
-                        "age" => meta.age.as_millis(),
-                        "idle_for" => meta.idle_for.as_millis(),
-                        "cached_statements_size" => conn.cached_statements_size()
-                    ),
-                ),
-            )
-        }
-    });
 }
 
 /// Конфигурация пула подключений к БД.

@@ -1,4 +1,6 @@
-use crate::db::PgConnection;
+use sqlx::Postgres;
+use crate::db::sqlx::pool::PoolConnection;
+
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -58,7 +60,7 @@ impl AppState {
         &self.inner.db_client
     }
 
-    pub async fn acquire_db_connection(&self) -> Result<PgConnection, sqlx::Error> {
+    pub async fn acquire_db_connection(&self) -> Result<PoolConnection<Postgres>, sqlx::Error> {
         self.inner
             .db_client
             .pool()

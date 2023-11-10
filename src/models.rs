@@ -1,4 +1,4 @@
-// use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc};
 // pub type UserId = i64;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -13,7 +13,7 @@ pub struct User {
     pub user_id: String,
     pub first_name: String,
     pub second_name: String,
-    pub birthdate: Option<String>,
+    pub birthdate: DateTime<Utc>,
     pub gender: Option<Gender>,
     pub city: Option<String>,
     pub biography: Option<String>,
