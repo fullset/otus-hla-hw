@@ -12,7 +12,7 @@ CREATE TABLE social_net.users
     user_id         CHAR(64) NOT NULL,
     first_name      VARCHAR(100) NOT NULL,
     second_name     VARCHAR(100) NOT NULL,
-    birthdate       DATE,
+    birthdate       TIMESTAMPTZ,
     gender          social_net.gender,
     city            VARCHAR(100),
     biography       VARCHAR(999),

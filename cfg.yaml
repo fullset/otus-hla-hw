@@ -5,7 +5,7 @@ http: "0.0.0.0:8083"
 ### Настройки БД
 ###
 postgres:
-  host: "postgres"
+  host: "localhost"
   port: 5432
   user: "postgres"
   password: "postgres"

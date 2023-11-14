@@ -8,10 +8,15 @@ use async_trait::async_trait;
 use crate::{config::Config, db::DbClient};
 
 #[derive(Clone)]
-pub struct AppState {
-    inner: Arc<AppStateInner>,
-}
+pub struct AppState(Arc<AppStateInner>);
 
+impl std::ops::Deref for AppState {
+    type Target = AppStateInner;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 #[async_trait]
 pub trait HealthChecker {
     async fn healthcheck(&self) -> anyhow::Result<()>;
@@ -20,11 +25,11 @@ pub trait HealthChecker {
 #[async_trait]
 impl HealthChecker for AppState {
     async fn healthcheck(&self) -> anyhow::Result<()> {
-        self.inner.healthcheck().await
+        self.0.healthcheck().await
     }
 }
 
-struct AppStateInner {
+pub struct AppStateInner {
     //TODO: logger
     // logger: Logger,
     db_client: DbClient,
@@ -38,30 +43,29 @@ impl AppState {
         db_client: DbClient,
     ) -> Self
     {
-        Self {
-            inner: Arc::new(AppStateInner {
+        Self (Arc::new(AppStateInner {
                 // logger,
                 db_client,
                 cfg,
             }),
-        }
+        )
     }
 
     pub fn cfg(&self) -> &Config {
-        &self.inner.cfg
+        &self.0.cfg
     }
 
     //TODO: logger
     // pub fn logger(&self) -> &Logger {
-        // &self.inner.logger
+        // &self.0.logger
     // }
 
     pub fn db(&self) -> &DbClient {
-        &self.inner.db_client
+        &self.0.db_client
     }
 
     pub async fn acquire_db_connection(&self) -> Result<PoolConnection<Postgres>, sqlx::Error> {
-        self.inner
+        self.0
             .db_client
             .pool()
             .acquire()

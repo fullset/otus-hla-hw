@@ -18,11 +18,9 @@ impl DbClient {
     }
 }
 
-use std::{
-    time::Duration,
-};
-
-use  slog::{self, Level};
+// use std::{
+    // time::Duration,
+// };
 
 pub use sqlx::{self, PgPool};
 
@@ -35,23 +33,23 @@ use sqlx::{
 pub type PgConnection = PoolConnection<Postgres>;
 
 // From https://docs.rs/sqlx-core/0.6.2/src/sqlx_core/pool/options.rs.html#128
-fn default_max_lifetime() -> Option<Duration> {
-    Some(Duration::from_secs(30 * 60))
-}
+// fn default_max_lifetime() -> Option<Duration> {
+//     Some(Duration::from_secs(30 * 60))
+// }
 
-// From https://docs.rs/sqlx-core/0.6.2/src/sqlx_core/pool/options.rs.html#127
-fn default_idle_timeout() -> Option<Duration> {
-    Some(Duration::from_secs(10 * 60))
-}
+// // From https://docs.rs/sqlx-core/0.6.2/src/sqlx_core/pool/options.rs.html#127
+// fn default_idle_timeout() -> Option<Duration> {
+//     Some(Duration::from_secs(10 * 60))
+// }
 
-// From https://docs.rs/sqlx-core/0.6.2/src/sqlx_core/connection.rs.html#146
-fn default_statement_log_slow_duration() -> Duration {
-    Duration::from_secs(1)
-}
+// // From https://docs.rs/sqlx-core/0.6.2/src/sqlx_core/connection.rs.html#146
+// fn default_statement_log_slow_duration() -> Duration {
+//     Duration::from_secs(1)
+// }
 
-fn default_statement_log_slow_level() -> Level {
-    Level::Warning
-}
+// fn default_statement_log_slow_level() -> Level {
+//     Level::Warning
+// }
 
 /// Конфигурация пула подключений к БД.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
