@@ -43,3 +43,7 @@ $ cd postgres && docker-compose down && docker-compose build --no-cache && docke
 $ cargo build
 $ ./target/debug/otus-hla-hw --config cfg.yaml
 ```
+По умолчанию сервис будет запущен на localhost:8083
+
+# Тесты
+Коллекция тестов postman лежит в `tests/postman_collection.json`
