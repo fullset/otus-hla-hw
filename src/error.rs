@@ -1,23 +1,24 @@
-use thiserror::Error;
-use axum::response::{Response, IntoResponse};
 use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ApiError {
     #[error("Database error")]
     Db(#[from] sqlx::Error),
-    #[error("Unknown error")]
-    Unknown,
+    #[error("Unauthorized")]
+    Unauthorized,
 }
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
-        let body = match self {
-            ApiError::Db(_)=> "Db error",
-            ApiError::Unknown => "Unknown error",
-        };
-
-        // its often easiest to implement `IntoResponse` by calling other implementations
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+        print!("{:?}", self);
+        match self {
+            ApiError::Db(sqlx::Error::RowNotFound) => {
+                (StatusCode::NOT_FOUND, "Not found").into_response()
+            }
+            ApiError::Db(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Db error").into_response(),
+            ApiError::Unauthorized => (StatusCode::FORBIDDEN, "Unauthorized").into_response(),
+        }
     }
 }

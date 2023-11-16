@@ -1,5 +1,5 @@
-use sqlx::Postgres;
 use crate::db::sqlx::pool::PoolConnection;
+use sqlx::Postgres;
 
 use std::sync::Arc;
 
@@ -41,14 +41,12 @@ impl AppState {
         cfg: Config,
         // logger: Logger,
         db_client: DbClient,
-    ) -> Self
-    {
-        Self (Arc::new(AppStateInner {
-                // logger,
-                db_client,
-                cfg,
-            }),
-        )
+    ) -> Self {
+        Self(Arc::new(AppStateInner {
+            // logger,
+            db_client,
+            cfg,
+        }))
     }
 
     pub fn cfg(&self) -> &Config {
@@ -57,19 +55,11 @@ impl AppState {
 
     //TODO: logger
     // pub fn logger(&self) -> &Logger {
-        // &self.0.logger
+    // &self.0.logger
     // }
 
-    pub fn db(&self) -> &DbClient {
-        &self.0.db_client
-    }
-
     pub async fn acquire_db_connection(&self) -> Result<PoolConnection<Postgres>, sqlx::Error> {
-        self.0
-            .db_client
-            .pool()
-            .acquire()
-            .await
+        self.0.db_client.pool().acquire().await
     }
 }
 
@@ -78,7 +68,7 @@ impl HealthChecker for AppStateInner {
     async fn healthcheck(&self) -> anyhow::Result<()> {
         slog_scope::info!("AppStateInner health check");
         // server::reexport::futures::try_join!(
-            // self.db_client.healthcheck(),
+        // self.db_client.healthcheck(),
         // )?;
         Ok(())
     }

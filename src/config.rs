@@ -12,7 +12,6 @@ pub struct Config {
     // pub logging: LoggingConfig,
 }
 
-
 impl Config {
     pub fn new<P: AsRef<Path>>(path: Option<P>) -> Result<Self, config_lib::ConfigError> {
         let mut cfg = config_lib::Config::builder();

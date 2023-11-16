@@ -5,8 +5,7 @@
 
 Стек:
 1. Rust 
-2. Redis - хранение сессий
-3. Postgres - Основное хранилище
+2. Postgres - Основное хранилище
 
 # Зависимости
 - rustc >=1.73.0 (cc66ad468 2023-10-03)
@@ -42,3 +41,5 @@ $ cd postgres && docker-compose down && docker-compose build --no-cache && docke
 ## Запуск сервиса 
 ```
 $ cargo build
+$ ./target/debug/otus-hla-hw --config cfg.yaml
+```

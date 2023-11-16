@@ -6,10 +6,9 @@ mod models;
 mod state;
 mod web;
 
-
-use slog::{Drain, slog_o};
 use anyhow::Context;
 use futures::future;
+use slog::{slog_o, Drain};
 use structopt::StructOpt;
 use tokio_util::sync::CancellationToken;
 
@@ -23,10 +22,7 @@ use crate::{
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let plain = slog_term::PlainSyncDecorator::new(std::io::stdout());
-    let log = slog::Logger::root(
-        slog_term::FullFormat::new(plain)
-        .build().fuse(), slog_o!()
-    );
+    let log = slog::Logger::root(slog_term::FullFormat::new(plain).build().fuse(), slog_o!());
 
     let _guard = slog_scope::set_global_logger(log);
 
@@ -36,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app_state = init_app_state(cfg).await?;
 
-    let result = if cmd.check {
+    if cmd.check {
         slog_scope::info!(
             "starting {} v{} check",
             env!("CARGO_PKG_NAME"),
@@ -65,18 +61,14 @@ async fn main() -> anyhow::Result<()> {
         slog_scope::debug!("config: {:#?}", app_state.cfg());
 
         run(app_state, cancel_token).await
-    };
-
-    result
+    }
 }
 
 async fn run(app_state: AppState, cancel_token: CancellationToken) -> anyhow::Result<()> {
     let mut task_handles = Vec::with_capacity(2);
 
     // Start web (http)
-    let web_handle = tokio::task::spawn({
-        web::run(app_state.clone())
-    });
+    let web_handle = tokio::task::spawn(web::run(app_state.clone()));
     task_handles.push(web_handle);
 
     let (result, _idx, _other) = future::select_all(task_handles).await;
@@ -97,8 +89,5 @@ async fn init_app_state(cfg: Config) -> anyhow::Result<AppState> {
         .await
         .context("making postgres client")?;
 
-    Ok(AppState::new(
-        cfg,
-        db_client,
-    ))
+    Ok(AppState::new(cfg, db_client))
 }
