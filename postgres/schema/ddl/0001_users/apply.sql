@@ -28,7 +28,7 @@ COMMENT ON COLUMN social_net.users.second_name      IS 'Second name';
 COMMENT ON COLUMN social_net.users.birthdate        IS 'Card expiry date';
 COMMENT ON COLUMN social_net.users.gender           IS 'User''s gender';
 COMMENT ON COLUMN social_net.users.city             IS 'User''s city';
-COMMENT ON COLUMN social_net.users.biography        IS 'Users inetersts';
+COMMENT ON COLUMN social_net.users.biography        IS 'Users interests';
 COMMENT ON COLUMN social_net.users.password_hash    IS 'Secret string for password comparing';
 
 COMMIT;
