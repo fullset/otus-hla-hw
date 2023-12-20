@@ -2,7 +2,7 @@ use crate::error::ApiError;
 use crate::state::AppState;
 use axum::extract::Path;
 use axum::{
-    extract::Json,
+    extract::{Json, Query},
     routing::{get, post},
     Extension, Router, Server,
 };
@@ -49,11 +49,28 @@ pub struct LoginResponse {
     token: String,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct SearchRequest {
+    pub first_name: String,
+    pub last_name: String,
+}
+
+#[derive(Clone, Debug, FromRow, Serialize, Deserialize)]
+pub struct SearchResponse {
+    #[serde(rename = "id")]
+    user_id: String,
+    first_name: String,
+    second_name: String,
+    birthdate: Option<NaiveDate>,
+    biography: Option<String>,
+    city: Option<String>,
+}
+
 async fn get_user(
     Path(user_id): Path<String>,
     app_state: Extension<AppState>,
 ) -> Result<Json<GetUserResponse>, ApiError> {
-    format!("get {user_id}");
+    println!("get {user_id}");
     let mut conn = app_state.0.acquire_db_connection().await?;
     let res = sqlx::query_as!(
         GetUserResponse,
@@ -66,6 +83,28 @@ async fn get_user(
     )
     .fetch_one(&mut conn)
     .await?;
+    Ok(Json(res))
+}
+
+async fn search_user(
+    Query(search_req): Query<SearchRequest>,
+    app_state: Extension<AppState>,
+) -> Result<Json<SearchResponse>, ApiError> {
+    println!("search {:?}", search_req);
+    let mut conn = app_state.0.acquire_db_connection().await?;
+    let res = sqlx::query_as!(
+        SearchResponse,
+        r#"
+            SELECT user_id, first_name, second_name, birthdate, biography, city
+            FROM social_net.users
+            WHERE upper(first_name) LIKE upper($1) AND upper(second_name) LIKE upper($2)
+            "#,
+        search_req.first_name,
+        search_req.last_name,
+    )
+    .fetch_one(&mut conn)
+    .await?;
+
     Ok(Json(res))
 }
 
@@ -146,4 +185,5 @@ fn check_router() -> Router {
         .route("/login", post(login))
         .route("/user/register", post(register))
         .route("/user/get/:id", get(get_user))
+        .route("/user/search", get(search_user))
 }

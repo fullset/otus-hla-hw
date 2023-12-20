@@ -11,10 +11,12 @@
 - rustc >=1.73.0 (cc66ad468 2023-10-03)
 - docker-compose 1.25.0-1 (для запуска postgresql) (Установить по инструкции с https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04)
 - libssl-dev (1.1.1f-1ubuntu2.20)
+- sqlx-cli
 
 ```
 $ sudo apt install libssl-dev
 $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+$ cargo install sqlx-cli
 ```
 
 # Сборка
@@ -40,6 +42,7 @@ $ cd postgres && docker-compose down && docker-compose build --no-cache && docke
 
 ## Запуск сервиса 
 ```
+$ export DATABASE_URL=postgres://postgres:postgres@localhost/social_net
 $ cargo build
 $ ./target/debug/otus-hla-hw --config cfg.yaml
 ```
