@@ -89,20 +89,20 @@ async fn get_user(
 async fn search_user(
     Query(search_req): Query<SearchRequest>,
     app_state: Extension<AppState>,
-) -> Result<Json<SearchResponse>, ApiError> {
+) -> Result<Json<Vec<SearchResponse>>, ApiError> {
     println!("search {:?}", search_req);
     let mut conn = app_state.0.acquire_db_connection().await?;
-    let res = sqlx::query_as!(
+    let res: Vec<SearchResponse> = sqlx::query_as!(
         SearchResponse,
         r#"
             SELECT user_id, first_name, second_name, birthdate, biography, city
             FROM social_net.users
             WHERE upper(first_name) LIKE upper($1) AND upper(second_name) LIKE upper($2)
             "#,
-        search_req.first_name,
-        search_req.last_name,
+        format!("{}%",search_req.first_name),
+        format!("{}%",search_req.last_name),
     )
-    .fetch_one(&mut conn)
+    .fetch_all(&mut conn)
     .await?;
 
     Ok(Json(res))
