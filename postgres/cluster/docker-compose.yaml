@@ -12,7 +12,7 @@ services:
       - POSTGRESQL_POSTGRES_PASSWORD=adminpgpwd4otushw
       - POSTGRESQL_USERNAME=otushwpguser
       - POSTGRESQL_PASSWORD=pgpwd4otushw
-      - POSTGRESQL_DATABASE=otushwdb
+      - POSTGRESQL_DATABASE=social_net
       - REPMGR_PASSWORD=repmgrpassword
       - REPMGR_PRIMARY_HOST=pg-1
       - REPMGR_PRIMARY_PORT=5432
@@ -27,6 +27,11 @@ services:
     restart: unless-stopped
     networks:
       - postgres-ha
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pg-2:
     container_name: postgres_2
@@ -40,7 +45,7 @@ services:
       - POSTGRESQL_POSTGRES_PASSWORD=adminpgpwd4otushw
       - POSTGRESQL_USERNAME=otushwpguser
       - POSTGRESQL_PASSWORD=pgpwd4otushw
-      - POSTGRESQL_DATABASE=otushwdb
+      - POSTGRESQL_DATABASE=social_net
       - REPMGR_PASSWORD=repmgrpassword
       - REPMGR_PRIMARY_HOST=pg-1
       - REPMGR_PRIMARY_PORT=5432
@@ -68,7 +73,7 @@ services:
       - POSTGRESQL_POSTGRES_PASSWORD=adminpgpwd4otushw
       - POSTGRESQL_USERNAME=otushwpguser
       - POSTGRESQL_PASSWORD=pgpwd4otushw
-      - POSTGRESQL_DATABASE=otushwdb
+      - POSTGRESQL_DATABASE=social_net
       - REPMGR_PASSWORD=repmgrpassword
       - REPMGR_PRIMARY_HOST=pg-1
       - REPMGR_PRIMARY_PORT=5432
@@ -83,6 +88,32 @@ services:
     restart: unless-stopped
     networks:
       - postgres-ha
+
+  # social_net_app:
+  #   build:
+  #     context: .
+  #   # environment:
+  #     # DATABASE_URL: postgres://postgres:postgres@postgres/social_net
+  #   container_name: social_net
+  #   ports:
+  #     - "8083:8083"
+  #   links:
+  #     - pg-2
+
+  migrator:
+    build:
+      context: ..
+      dockerfile: migrator.Dockerfile
+    container_name: migrator
+    environment:
+      PSQL_CONN_STR: "postgres://postgres:adminpgpwd4otushw@pg-1"
+      SN_USER: postgres
+    depends_on:
+      pg-1:
+        condition: service_healthy
+    networks:
+      - postgres-ha
+
 
 networks:
   postgres-ha:
