@@ -4,7 +4,7 @@ import uuid
 
 
 # пытаемся подключиться к базе данных
-conn = psycopg2.connect(dbname='social_net', user='postgres', password='postgres', host='127.0.0.1')
+conn = psycopg2.connect(dbname='social_net', user='postgres', password='adminpgpwd4otushw', host='127.0.0.1', port=6432)
 
 with open("people.csv") as fp:
     reader = csv.reader(fp, delimiter=",", quotechar='"')

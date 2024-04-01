@@ -60,6 +60,11 @@ services:
     restart: unless-stopped
     networks:
       - postgres-ha
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pg-3:
     container_name: postgres_3
@@ -89,16 +94,18 @@ services:
     networks:
       - postgres-ha
 
-  # social_net_app:
-  #   build:
-  #     context: .
-  #   # environment:
-  #     # DATABASE_URL: postgres://postgres:postgres@postgres/social_net
-  #   container_name: social_net
-  #   ports:
-  #     - "8083:8083"
-  #   links:
-  #     - pg-2
+  social_net_app:
+    build:
+      context: ../..
+      dockerfile: postgres/cluster/Dockerfile
+    container_name: social_net
+    ports:
+      - "8083:8083"
+    networks:
+      - postgres-ha
+    depends_on:
+      pg-2:
+        condition: service_healthy
 
   migrator:
     build:
@@ -113,6 +120,44 @@ services:
         condition: service_healthy
     networks:
       - postgres-ha
+
+  pg_exporter-1:
+    container_name: pg_exporter_1
+    image: prometheuscommunity/postgres-exporter:v0.11.1
+    command: --log.level=debug
+    environment:
+      DATA_SOURCE_URI: "pg-1:5432/social_net?sslmode=disable"
+      DATA_SOURCE_USER: otushwpguser
+      DATA_SOURCE_PASS: pgpwd4otushw
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+    volumes:
+      - ./queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+    ports:
+      - "9187:9187"
+    networks:
+      - postgres-ha
+    restart: unless-stopped
+    depends_on:
+      - pg-1
+
+  pg_exporter-2:
+    container_name: pg_exporter_2
+    image: prometheuscommunity/postgres-exporter:v0.11.1
+    command: --log.level=debug
+    environment:
+      DATA_SOURCE_URI: "pg-2:5432/social_net?sslmode=disable"
+      DATA_SOURCE_USER: otushwpguser
+      DATA_SOURCE_PASS: pgpwd4otushw
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+    volumes:
+      - ./queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+    ports:
+      - "9188:9187"
+    networks:
+      - postgres-ha
+    restart: unless-stopped
+    depends_on:
+      - pg-2
 
 
 networks:
