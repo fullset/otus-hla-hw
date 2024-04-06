@@ -165,6 +165,12 @@ async fn register(
     }))
 }
 
+async fn healthcheck(_app_state: Extension<AppState>) -> Result<(), ApiError> {
+    println!("healthcheck call");
+
+    Ok(())
+}
+
 pub async fn run(app_state: AppState) -> anyhow::Result<()> {
     let addr = app_state.cfg().http;
 
@@ -182,6 +188,7 @@ fn make_router(app_state: AppState) -> Router {
 
 fn check_router() -> Router {
     Router::new()
+        .route("/healthcheck", get(healthcheck))
         .route("/login", post(login))
         .route("/user/register", post(register))
         .route("/user/get/:id", get(get_user))

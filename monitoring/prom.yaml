@@ -17,3 +17,7 @@ scrape_configs:
       - targets: ['localhost:9188']
         labels:
           group: 'slave'
+
+      - targets: ['localhost:9189']
+        labels:
+          group: 'slave'

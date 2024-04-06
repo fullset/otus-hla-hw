@@ -1,34 +1,275 @@
-version: "3"
+version: "3.9"
 services:
-  postgres:
-    image: postgres
-    container_name: postgres
-    environment:
-      POSTGRES_DB: social_net
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
+
+  # Database cluster
+  pg-1:
+    container_name: postgres_1
+    image: docker.io/bitnami/postgresql-repmgr:14.9.0
     ports:
-      - "5432:5432"
+      - "6432:5432"
+    volumes:
+      # - pg_1_data:/bitnami/postgresql/conf
+      - ./create_extensions.sql:/docker-entrypoint-initdb.d/create_extensions.sql:ro
+      # - ./postgresql.conf:/bitnami/repmgr/conf/
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=adminpgpwd4otushw
+      - POSTGRESQL_USERNAME=otushwpguser
+      - POSTGRESQL_PASSWORD=pgpwd4otushw
+      - POSTGRESQL_DATABASE=social_net
+      - POSTGRESQL_REPLICATION_MODE=master
+      # - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      # - POSTGRESQL_SYNCHRONOUS_REPLICAS_MODE=ANY
+      - REPMGR_PASSWORD=repmgrpassword
+      - REPMGR_PRIMARY_HOST=pg-1
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-1,pg-2,pg-3:5432
+      - REPMGR_NODE_NAME=pg-1
+      - REPMGR_NODE_NETWORK_NAME=pg-1
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_CONNECT_TIMEOUT=1
+      - REPMGR_RECONNECT_ATTEMPTS=2
+      - REPMGR_RECONNECT_INTERVAL=1
+      - REPMGR_MASTER_RESPONSE_TIMEOUT=5
+    restart: unless-stopped
+    networks:
+      - postgres-ha
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 1s
-      timeout: 1s
-      retries: 10
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pg-2:
+    container_name: postgres_2
+    image: docker.io/bitnami/postgresql-repmgr:14.9.0
+    ports:
+      - "6433:5432"
+    volumes:
+      - pg_2_data:/bitnami/postgresql
+      - ./create_extensions.sql:/docker-entrypoint-initdb.d/create_extensions.sql:ro
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=adminpgpwd4otushw
+      - POSTGRESQL_USERNAME=otushwpguser
+      - POSTGRESQL_PASSWORD=pgpwd4otushw
+      - POSTGRESQL_DATABASE=social_net
+      - POSTGRESQL_REPLICATION_MODE=slave
+      # - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      # - POSTGRESQL_SYNCHRONOUS_REPLICAS_MODE=ANY
+      - REPMGR_PASSWORD=repmgrpassword
+      - REPMGR_PRIMARY_HOST=pg-1
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-1,pg-2,pg-3:5432
+      - REPMGR_NODE_NAME=pg-2
+      - REPMGR_NODE_NETWORK_NAME=pg-2
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_CONNECT_TIMEOUT=1
+      - REPMGR_RECONNECT_ATTEMPTS=2
+      - REPMGR_RECONNECT_INTERVAL=1
+      - REPMGR_MASTER_RESPONSE_TIMEOUT=5
+    restart: unless-stopped
+    networks:
+      - postgres-ha
+    depends_on:
+      pg-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pg-3:
+    container_name: postgres_3
+    image: docker.io/bitnami/postgresql-repmgr:14.9.0
+    ports:
+      - "6434:5432"
+    volumes:
+      - pg_3_data:/bitnami/postgresql
+      - ./create_extensions.sql:/docker-entrypoint-initdb.d/create_extensions.sql:ro
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=adminpgpwd4otushw
+      - POSTGRESQL_USERNAME=otushwpguser
+      - POSTGRESQL_PASSWORD=pgpwd4otushw
+      - POSTGRESQL_DATABASE=social_net
+      - POSTGRESQL_REPLICATION_MODE=slave
+      # - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      # - POSTGRESQL_SYNCHRONOUS_REPLICAS_MODE=ANY
+      - REPMGR_PASSWORD=repmgrpassword
+      - REPMGR_PRIMARY_HOST=pg-1
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-1,pg-2,pg-3:5432
+      - REPMGR_NODE_NAME=pg-3
+      - REPMGR_NODE_NETWORK_NAME=pg-3
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_CONNECT_TIMEOUT=1
+      - REPMGR_RECONNECT_ATTEMPTS=2
+      - REPMGR_RECONNECT_INTERVAL=1
+      - REPMGR_MASTER_RESPONSE_TIMEOUT=5
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      pg-1:
+        condition: service_healthy
+    networks:
+      - postgres-ha
+
+  # Database scheme migrations
   migrator:
     build:
-      context: ./postgres/
+      context: ./postgres
       dockerfile: migrator.Dockerfile
     container_name: migrator
+    environment:
+      PSQL_CONN_STR: "postgres://postgres:adminpgpwd4otushw@pg-1"
+      SN_USER: postgres
     depends_on:
-      postgres:
+      pg-1:
+        condition: service_healthy
+    networks:
+      - postgres-ha
+  
+  # # Database prometheus exporter
+  # pg_exporter-1:
+  #   container_name: pg_exporter_1
+  #   image: prometheuscommunity/postgres-exporter:v0.11.1
+  #   command: --log.level=debug
+  #   environment:
+  #     DATA_SOURCE_URI: "pg-1:5432/social_net?sslmode=disable"
+  #     DATA_SOURCE_USER: otushwpguser
+  #     DATA_SOURCE_PASS: pgpwd4otushw
+  #     PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+  #   volumes:
+  #     - ./queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+  #   ports:
+  #     - "9187:9187"
+  #   networks:
+  #     - postgres-ha
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - pg-1
+
+  # pg_exporter-2:
+  #   container_name: pg_exporter_2
+  #   image: prometheuscommunity/postgres-exporter:v0.11.1
+  #   command: --log.level=debug
+  #   environment:
+  #     DATA_SOURCE_URI: "pg-2:5432/social_net?sslmode=disable"
+  #     DATA_SOURCE_USER: otushwpguser
+  #     DATA_SOURCE_PASS: pgpwd4otushw
+  #     PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+  #   volumes:
+  #     - ./queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+  #   ports:
+  #     - "9188:9187"
+  #   networks:
+  #     - postgres-ha
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - pg-2
+
+  # pg_exporter-3:
+  #   container_name: pg_exporter_3
+  #   image: prometheuscommunity/postgres-exporter:v0.11.1
+  #   command: --log.level=debug
+  #   environment:
+  #     DATA_SOURCE_URI: "pg-3:5432/social_net?sslmode=disable"
+  #     DATA_SOURCE_USER: otushwpguser
+  #     DATA_SOURCE_PASS: pgpwd4otushw
+  #     PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+  #   volumes:
+  #     - ./queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+  #   ports:
+  #     - "9189:9187"
+  #   networks:
+  #     - postgres-ha
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - pg-3
+
+  # Database cluster balancer
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres-ha
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      pg-1:
+        condition: service_healthy
+      pg-2:
+        condition: service_healthy
+      pg-3:
         condition: service_healthy
 
-  social_net_app:
+  # Backend services cluster
+  node1:
     build:
       context: .
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres/social_net
-    container_name: social_net
-    links:
-      - migrator
-      - postgres
+      dockerfile: Dockerfile
+    container_name: social_net_1
+    ports:
+      - "7181:8083"
+    networks:
+      - postgres-ha
+    depends_on:
+      pg-2:
+        condition: service_healthy
+
+  node2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: social_net_2
+    ports:
+      - "7182:8083"
+    networks:
+      - postgres-ha
+    depends_on:
+      pg-2:
+        condition: service_healthy
+
+  node3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: social_net_3
+    ports:
+      - "7183:8083"
+    networks:
+      - postgres-ha
+    depends_on:
+      pg-2:
+        condition: service_healthy
+
+  # API gateway balancer
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    networks:
+      - postgres-ha
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - node1
+      - node2
+      - node3
+
+
+networks:
+  postgres-ha:
+    driver: bridge
+
+volumes:
+  pg_1_data:
+  pg_2_data:
+  pg_3_data:
+

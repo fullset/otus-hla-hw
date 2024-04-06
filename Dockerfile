@@ -1,12 +1,11 @@
 # Use the official Rust image as a base
-FROM rust:latest as builder
+FROM rust:bookworm as builder
 
 WORKDIR /usr/src/otus-hla-hw
 
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 COPY src ./src
-COPY cfg.yaml ./
 COPY sqlx-data.json ./
 
 RUN apt install -y libssl-dev
@@ -14,10 +13,13 @@ RUN cargo build --release
 
 RUN cargo install --path .
 
-FROM debian:buster-slim
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt install -y openssl
 
 WORKDIR /usr/local/bin/
 
 COPY --from=builder /usr/local/cargo/bin/otus-hla-hw .
+COPY cfg.yaml ./
 
-CMD ["./otus-hla-hw", "--config", "/usr/src/otus-hla-hw/cfg.yaml"]
+CMD ["./otus-hla-hw", "--config", "cfg.yaml"]

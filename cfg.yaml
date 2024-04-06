@@ -5,10 +5,12 @@ http: "0.0.0.0:8083"
 ### Настройки БД
 ###
 postgres:
-  host: "localhost"
+  # host: "localhost"
+  host: haproxy
   port: 5432
   user: "postgres"
-  password: "postgres"
+  password: "adminpgpwd4otushw"
+  # password: "postgres"
   database: "social_net"
 
   # Максимальное количество подключений в пуле. (По умолчанию 10)
