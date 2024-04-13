@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SQL_DIR="${SQL_DIR:-./tests/data/schema}"
-MIGRATIONS_DIR="${MIGRATIONS_DIR:-./tests/data/migrations}"
+SQL_DIR="${SQL_DIR:-.}"
+MIGRATIONS_DIR="${MIGRATIONS_DIR:-.}"
 
 set -e
 

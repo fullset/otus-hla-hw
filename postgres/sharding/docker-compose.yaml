@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  citus_coordinator:
+    image: citusdata/citus:latest
+    container_name: citus_coordinator
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - CITUS_WORKER_NODES=2
+    ports:
+      - "5432:5432"
+    networks:
+      - citus_network
+    volumes:
+      - citus_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 1s
+      timeout: 1s
+      retries: 10
+
+  citus_worker_1:
+    image: citusdata/citus:latest
+    container_name: citus_worker_1
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - citus_network
+    depends_on:
+      - citus_coordinator
+
+  citus_worker_2:
+    image: citusdata/citus:latest
+    container_name: citus_worker_2
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - citus_network
+    depends_on:
+      - citus_coordinator
+
+  migrator:
+    build:
+      context: ..
+      dockerfile: sharding/migrator.Dockerfile
+    container_name: migrator
+    environment: 
+      PSQL_CONN_STR: postgres://postgres:postgres@citus_coordinator
+      SN_USER: postgres
+    depends_on:
+      citus_coordinator:
+        condition: service_healthy
+    networks:
+      - citus_network
+
+networks:
+  citus_network:
+
+volumes:
+  citus_data:

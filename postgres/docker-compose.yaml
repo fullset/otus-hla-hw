@@ -12,18 +12,6 @@ services:
       interval: 1s
       timeout: 1s
       retries: 10
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   ports:
-  #     - "8443:443"
-  #     - "8180:80"
-  #   environment:
-  #     - PGADMIN_DEFAULT_EMAIL=admin@example.com
-  #     - PGADMIN_DEFAULT_PASSWORD=test
-  #   depends_on:
-  #     - postgres
-  #   volumes:
-  #     - ./servers.json:/pgadmin4/servers.json
   migrator:
     build:
       context: .
