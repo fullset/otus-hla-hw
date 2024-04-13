@@ -27,6 +27,11 @@ services:
       - citus_network
     depends_on:
       - citus_coordinator
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 1s
+      timeout: 1s
+      retries: 10
 
   citus_worker_2:
     image: citusdata/citus:latest
@@ -37,6 +42,11 @@ services:
       - citus_network
     depends_on:
       - citus_coordinator
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 1s
+      timeout: 1s
+      retries: 10
 
   migrator:
     build:
@@ -48,6 +58,10 @@ services:
       SN_USER: postgres
     depends_on:
       citus_coordinator:
+        condition: service_healthy
+      citus_worker_1:
+        condition: service_healthy
+      citus_worker_2:
         condition: service_healthy
     networks:
       - citus_network

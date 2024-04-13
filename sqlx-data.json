@@ -94,6 +94,53 @@
     },
     "query": "\n            SELECT password_hash\n            FROM social_net.users\n            WHERE user_id = $1\n            "
   },
+  "8af9eba2defa186201ffbf768ef29e458ec392b03a021457aa9591881408d5d8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_from",
+          "ordinal": 0,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "user_to",
+          "ordinal": 1,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "message",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        null,
+        null,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar",
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            SELECT user_from, user_to, message\n            FROM social_net.messages WHERE user_from = $1 AND user_to = $2\n            UNION \n            SELECT user_from, user_to, message\n            FROM social_net.messages WHERE user_from = $2 AND user_to = $1\n            "
+  },
+  "ba1db38905b922b6986db24100f35d361162f1d3512eb09f5bdd126f496b699e": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Bpchar",
+          "Bpchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO social_net.messages (user_from, user_to, message, ts)\n            VALUES ($1, $2, $3, NOW())\n        "
+  },
   "fa6af6d7d39e337064b6c4bd2dec26192ef1ceb09fa5d1f963ebed3098bba221": {
     "describe": {
       "columns": [
