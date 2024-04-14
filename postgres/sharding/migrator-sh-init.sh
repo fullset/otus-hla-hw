@@ -12,9 +12,9 @@ echo '$SN_USER user granted'
 
 echo $(find $SQL_DIR/ddl -name apply.sql)
 
-# find $SQL_DIR/ddl -name apply.sql | sort -V | xargs -I{} psql $PSQL_CONN_STR/social_net -f {} -v ON_ERROR_STOP=1
+find $SQL_DIR/ddl -name apply.sql | sort -V | xargs -I{} psql $PSQL_CONN_STR/social_net -f {} -v ON_ERROR_STOP=1
 echo 'release migrations upped'
 
-# echo "CREATE EXTENSION citus" | psql $PSQL_CONN_STR/social_net 
+echo "CREATE EXTENSION citus" | psql $PSQL_CONN_STR/social_net
 
 echo "SELECT create_distributed_table('social_net.messages', 'user_from')" | psql $PSQL_CONN_STR/social_net 
