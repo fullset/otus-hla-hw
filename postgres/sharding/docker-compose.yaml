@@ -65,6 +65,19 @@ services:
         condition: service_healthy
     networks:
       - citus_network
+  
+  # social_net_app:
+  #   build:
+  #     context: ../..
+  #     dockerfile: postgres/sharding/Dockerfile
+  #   container_name: social_net
+  #   ports:
+  #     - "8083:8083"
+  #   networks:
+  #     - citus_network
+  #   depends_on:
+  #     citus_coordinator:
+  #       condition: service_healthy
 
 networks:
   citus_network:

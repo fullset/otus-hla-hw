@@ -1,0 +1,15 @@
+# Адрес на котором слушать запросы
+http: "0.0.0.0:8083"
+
+###
+### Настройки БД
+###
+postgres:
+  host: "citus_coordinator"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  database: "social_net"
+
+  # Максимальное количество подключений в пуле. (По умолчанию 10)
+  max_connections: 10

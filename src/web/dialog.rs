@@ -67,7 +67,7 @@ async fn list(
         r#"
             SELECT user_from, user_to, message
             FROM social_net.messages WHERE user_from = $1 AND user_to = $2
-            UNION 
+            UNION ALL
             SELECT user_from, user_to, message
             FROM social_net.messages WHERE user_from = $2 AND user_to = $1
             "#,
