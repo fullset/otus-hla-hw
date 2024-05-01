@@ -1,7 +1,6 @@
 #!/bin/bash
 
-SQL_DIR="${SQL_DIR:-./tests/data/schema}"
-MIGRATIONS_DIR="${MIGRATIONS_DIR:-./tests/data/migrations}"
+SQL_DIR="${SQL_DIR:-./schema}"
 
 set -e
 
@@ -14,7 +13,3 @@ echo '$SN_USER user granted'
 find $SQL_DIR/ -name apply.sql | sort -V | xargs -I{} psql $PSQL_CONN_STR/social_net -f {} -v ON_ERROR_STOP=1
 echo 'release migrations upped'
 
-find $MIGRATIONS_DIR/ -name apply.sql | sort -V | xargs -I{} psql $PSQL_CONN_STR/social_net -f {} -v ON_ERROR_STOP=1
-echo 'social_net migrations upped'
-
-echo "SELECT create_distributed_table('messages', 'user_from')" | psql $PSQL_CONN_STR/social_net 

@@ -5,8 +5,8 @@ http: "0.0.0.0:8083"
 ### Настройки БД
 ###
 postgres:
-  # host: "localhost"
-  host: haproxy
+  host: "localhost"
+  # host: haproxy
   port: 5432
   user: "postgres"
   password: "adminpgpwd4otushw"
